@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marc Studio | Giải pháp Livestream chuyên nghiệp</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #050505;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-up.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- HIỆU ỨNG KÍNH CHẢY (LIQUID GLASS) --- */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+        }
+        
+        .liquid-glass::before, .liquid-glass-strong::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 20%,
+                rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0.05) 80%, rgba(255, 255, 255, 0.2) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .liquid-glass-strong {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 60px rgba(59, 130, 246, 0.15);
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+        }
+
+        /* --- HOVER ANIMATIONS --- */
+        @keyframes floating-natural {
+            0%, 100% { transform: translateY(-12px); }
+            50% { transform: translateY(-18px); }
+        }
+        
+        .hover-shake-up {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease, border-color 0.6s ease;
+        }
+        
+        .hover-shake-up:hover {
+            transform: translateY(-12px);
+            animation: floating-natural 3s ease-in-out 0.6s infinite;
+            z-index: 20;
+        }
+
+        .hover-glow-blue:hover { box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.5); border-color: rgba(59, 130, 246, 0.5); }
+        .hover-glow-cyan:hover { box-shadow: 0 25px 50px -12px rgba(6, 182, 212, 0.5); border-color: rgba(6, 182, 212, 0.5); }
+        .hover-glow-purple:hover { box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.5); border-color: rgba(168, 85, 247, 0.5); }
+
+        /* --- 3D GALLERY --- */
+        @keyframes scroll-x { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-scroll-x { display: flex; width: max-content; animation: scroll-x 15s linear infinite; }
+        .gallery-3d-wrapper { 
+            transform-style: preserve-3d; 
+            transform: translate(-50%, -50%) rotateX(15deg) rotateY(-15deg) rotateZ(4deg) scale(1.1); 
+            position: absolute; top: 50%; left: 50%;
+        }
+
+        /* --- RANDOM FAST ORBS ANIMATION --- */
+        @keyframes move-random-1 {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(40vw, 20vh) scale(1.2); }
+            50% { transform: translate(10vw, 80vh) scale(0.8); }
+            75% { transform: translate(-30vw, 40vh) scale(1.1); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes move-random-2 {
+            0% { transform: translate(0, 0) scale(1.1); }
+            33% { transform: translate(-50vw, 60vh) scale(0.9); }
+            66% { transform: translate(20vw, -30vh) scale(1.3); }
+            100% { transform: translate(0, 0) scale(1.1); }
+        }
+
+        .orb-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #050505 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            will-change: transform;
+        }
+
+        .orb-1 { width: 600px; height: 600px; background: rgba(59, 130, 246, 0.3); left: 10%; top: 10%; animation: move-random-1 12s infinite linear; }
+        .orb-2 { width: 500px; height: 500px; background: rgba(6, 182, 212, 0.25); right: 10%; bottom: 10%; animation: move-random-2 15s infinite linear; }
+        .orb-3 { width: 450px; height: 450px; background: rgba(168, 85, 247, 0.2); left: 40%; top: 50%; animation: move-random-1 18s infinite reverse linear; }
+        .orb-4 { width: 700px; height: 700px; background: rgba(59, 130, 246, 0.15); right: 20%; top: 20%; animation: move-random-2 10s infinite reverse linear; }
+
+        /* Zalo Button */
+        .zalo-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            background: #0068ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0, 104, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .zalo-float:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body class="selection:bg-blue-500 selection:text-white">
+
+    <!-- Random Orbs Background -->
+    <div class="orb-container">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/5 glass-nav text-white">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center font-bold text-sm text-white">M</div>
+                <span class="font-semibold text-lg tracking-wide">Marc Studio</span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm text-slate-400 font-medium">
+                <a href="#about" class="hover:text-white transition-colors">Về Chúng Tôi</a>
+                <a href="#services" class="hover:text-white transition-colors">Giải Pháp</a>
+                <a href="#workflow" class="hover:text-white transition-colors">Quy Trình</a>
+                <a href="#ai-consult" class="hover:text-white transition-colors flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i> AI Tư Vấn
+                </a>
+            </div>
+            <button onclick="openLeadModal()" class="hidden md:inline-block px-5 py-2.5 rounded-full bg-white text-black text-sm font-bold transition-all hover:bg-blue-500 hover:text-white">Bắt đầu ngay</button>
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-300">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-[100vh] pt-32 pb-16 flex items-center justify-center px-6 overflow-hidden text-center text-white bg-transparent">
+        <div class="absolute inset-0 z-0 overflow-hidden perspective-[1200px] pointer-events-none">
+            <div class="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-transparent z-10"></div>
+            <div class="absolute inset-0 backdrop-blur-[2px] z-10"></div>
+            
+            <div class="gallery-3d-wrapper w-[200vw] flex items-center">
+                <div class="animate-scroll-x gap-8">
+                    <img src="https://images.unsplash.com/photo-1516280440502-a2f07ebbd056?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1520881363902-a0ff4e722963?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <!-- repeats -->
+                    <img src="https://images.unsplash.com/photo-1516280440502-a2f07ebbd056?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=600" class="w-64 h-[28rem] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-20 max-w-4xl mx-auto flex flex-col items-center">
+            <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase mb-8 backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                Giải pháp Livestream tiêu chuẩn quốc tế
+            </div>
+            <h1 class="reveal-up text-5xl md:text-7xl font-bold tracking-tight mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Marc Studio</h1>
+            <p class="reveal-up text-lg md:text-xl text-slate-300 max-w-2xl mb-10 font-medium">Cung cấp giải pháp toàn diện cho Livestream chuyên nghiệp toàn quốc.</p>
+            <div class="reveal-up flex flex-col sm:flex-row gap-4">
+                <button onclick="openLeadModal()" class="px-8 py-4 rounded-full bg-white text-black font-semibold hover-shake-up hover-glow-blue transition-all shadow-lg">Nhận bản phác thảo miễn phí</button>
+                <a href="#ai-consult" class="px-8 py-4 rounded-full bg-black/40 backdrop-blur-md border border-white/20 font-semibold flex items-center justify-center gap-2 text-blue-400 hover:text-white transition-all text-white">
+                    <i data-lucide="sparkles" class="w-[18px] h-[18px]"></i> AI Hỗ trợ nhanh
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- --- VỀ CHÚNG TÔI --- -->
+    <section id="about" class="px-6 py-24 relative overflow-hidden bg-transparent">
+        <div class="max-w-7xl mx-auto relative z-10 text-white text-center">
+            <motion.div class="reveal-up mb-16 pt-10">
+                <h2 class="text-3xl md:text-5xl font-bold mb-8">Về Chúng Tôi</h2>
+                <p class="text-slate-400 max-w-4xl mx-auto text-base md:text-xl leading-relaxed">
+                    Sự có mặt tư vấn của đơn vị MCN hàng đầu tại Việt Nam trong lĩnh vực TikTok Live với <strong class="text-white">hơn 5 năm kinh nghiệm</strong>. Và Studio có hơn <strong class="text-white">3 năm kinh nghiệm</strong>. Chuyên cung cấp các giải pháp Livestream chuyên nghiệp <strong class="text-white">tiêu chuẩn quốc tế đến từ Marc Studio</strong>.<br/><br/>
+                    Chúng tôi đã cùng nhau cung cấp hỗ trợ cho hơn 50+ cá nhân và 20+ doanh nghiệp tìm được giải pháp dài hạn. Chúng tôi cam kết mang tới giải pháp tối ưu hiệu quả cho khách hàng.
+                </p>
+            </motion.div>
+
+            <div class="reveal-up grid grid-cols-1 md:grid-cols-3 gap-px liquid-glass rounded-[40px] overflow-hidden border border-white/10 shadow-2xl">
+                <div class="bg-white/[0.01] p-10 flex flex-col items-center">
+                    <i data-lucide="map-pin" class="text-blue-400 mb-5 w-8 h-8"></i>
+                    <h4 class="text-white font-semibold text-lg mb-1">Toàn quốc ( Việt Nam )</h4>
+                    <p class="text-slate-500 text-sm">Khu vực</p>
+                </div>
+                <div class="bg-white/[0.01] p-10 flex flex-col items-center">
+                    <i data-lucide="briefcase" class="text-blue-400 mb-5 w-8 h-8"></i>
+                    <h4 class="text-white font-semibold text-lg mb-1">97a Bình Thới, Quận 11, TP.HCM</h4>
+                    <p class="text-slate-500 text-sm">Vị trí</p>
+                </div>
+                <div class="bg-white/[0.01] p-10 flex flex-col items-center">
+                    <i data-lucide="radio" class="text-blue-400 mb-5 w-8 h-8"></i>
+                    <h4 class="text-white font-semibold text-lg mb-1">Livestream</h4>
+                    <p class="text-slate-500 text-sm">Lĩnh vực</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- --- GIẢI PHÁP (3 KHỐI) --- -->
+    <section id="services" class="py-24 bg-transparent border-y border-white/5 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 relative z-10 text-white text-center">
+            <h2 class="text-3xl md:text-5xl font-bold mb-16 reveal-up">Giải pháp</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <div class="reveal-up md:col-span-2 liquid-glass hover-shake-up hover-glow-blue group rounded-[40px] p-8 md:p-12 relative transition-all">
+                    <i data-lucide="settings" class="w-10 h-10 text-blue-400 mb-6 transition-transform group-hover:scale-110"></i>
+                    <h3 class="text-2xl font-bold mb-4">Tư vấn và thiết lập</h3>
+                    <p class="text-slate-400 max-w-md mb-6 leading-relaxed">Kiến tạo không gian Livestream đẳng cấp, tối ưu hóa từ hạ tầng đến quy trình vận hành thực chiến.</p>
+                    <button onclick="openLeadModal()" class="px-5 py-2.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 text-sm font-medium flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Phân tích AI
+                    </button>
+                </div>
+                <div class="reveal-up liquid-glass hover-shake-up hover-glow-cyan group rounded-[40px] p-8 md:p-12 relative transition-all">
+                    <i data-lucide="users" class="w-10 h-10 text-cyan-400 mb-6 transition-transform group-hover:scale-110"></i>
+                    <h3 class="text-2xl font-bold mb-4">Đào tạo nhân sự</h3>
+                    <p class="text-slate-400 mb-6 leading-relaxed">Giúp đội ngũ của bạn làm chủ mọi công nghệ, tự tin tỏa sáng trước ống kính.</p>
+                    <button onclick="openLeadModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-sm font-medium flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Lên lộ trình
+                    </button>
+                </div>
+                <div class="reveal-up md:col-span-3 liquid-glass hover-shake-up hover-glow-purple group rounded-[40px] p-8 md:p-12 relative transition-all flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div class="max-w-2xl text-left">
+                        <i data-lucide="zap" class="w-10 h-10 text-purple-400 mb-6 transition-transform group-hover:scale-110"></i>
+                        <h3 class="text-2xl font-bold mb-4 text-white">Thiết lập sự kiện chuyên sâu</h3>
+                        <p class="text-slate-400 text-lg leading-relaxed">Đảm bảo hiệu ứng thị giác đỉnh cao cho các sự kiện livestream quy mô lớn.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- --- QUY TRÌNH LÀM VIỆC (3 BƯỚC TÁCH BIỆT) --- -->
+    <section id="workflow" class="py-24 px-6 relative overflow-hidden bg-transparent">
+        <div class="max-w-4xl mx-auto relative z-10 text-white">
+            <div class="reveal-up text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6 text-center">Quy Trình Làm Việc</h2>
+                <p class="text-slate-400 max-w-xl mx-auto text-lg text-center leading-relaxed">Rõ ràng, minh bạch và tối ưu hóa thời gian cho khách hàng.</p>
+            </div>
+            
+            <div class="space-y-12 text-left relative">
+                <!-- Step 1 -->
+                <div class="reveal-up liquid-glass hover-shake-up hover-glow-blue group rounded-[40px] p-6 md:p-10 flex flex-col sm:flex-row gap-8 items-center relative overflow-hidden">
+                    <div class="text-6xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-600/20 shrink-0 w-24 text-center italic">01</div>
+                    <div class="w-full">
+                        <h4 class="text-2xl font-bold text-white mb-3 uppercase italic">Khảo sát & Tư vấn</h4>
+                        <p class="text-slate-400 mb-5 text-base md:text-lg leading-relaxed">Phân tích nhu cầu, đo đạc không gian để đưa ra phương án thiết bị tối ưu nhất.</p>
+                        <div class="inline-flex items-center text-sm font-semibold text-blue-400 bg-blue-500/10 px-4 py-2 rounded-full border border-blue-500/20">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 mr-2"></i> Kết quả: Phương án tối ưu
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="reveal-up liquid-glass hover-shake-up hover-glow-cyan group rounded-[40px] p-6 md:p-10 flex flex-col sm:flex-row gap-8 items-center relative overflow-hidden">
+                    <div class="text-6xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-cyan-600/20 shrink-0 w-24 text-center italic">02</div>
+                    <div class="w-full">
+                        <h4 class="text-2xl font-bold text-white mb-3 uppercase italic">Triển khai Kỹ thuật</h4>
+                        <p class="text-slate-400 mb-5 text-base md:text-lg leading-relaxed">Lắp đặt, cấu hình hệ thống stream chuẩn và vận hành thực tế tại hiện trường.</p>
+                        <div class="inline-flex items-center text-sm font-semibold text-cyan-400 bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-500/20">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 mr-2"></i> Kết quả: Vận hành ổn định
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="reveal-up liquid-glass hover-shake-up hover-glow-purple group rounded-[40px] p-6 md:p-10 flex flex-col sm:flex-row gap-8 items-center relative overflow-hidden">
+                    <div class="text-6xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-purple-400 to-purple-600/20 shrink-0 w-24 text-center italic">03</div>
+                    <div class="w-full">
+                        <h4 class="text-2xl font-bold text-white mb-3 uppercase italic">Đào tạo & Bàn giao</h4>
+                        <p class="text-slate-400 mb-5 text-base md:text-lg leading-relaxed">Hướng dẫn vận hành thực chiến cho nhân sự và bàn giao quy trình kỹ thuật.</p>
+                        <div class="inline-flex items-center text-sm font-semibold text-purple-400 bg-purple-500/10 px-4 py-2 rounded-full border border-purple-500/20">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 mr-2"></i> Kết quả: Tự vận hành hiệu quả
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Consultant Section -->
+    <section id="ai-consult" class="py-24 px-6 bg-transparent relative overflow-hidden border-t border-white/5 text-center text-white">
+        <div class="max-w-4xl mx-auto relative z-10 text-white">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 reveal-up">Tư Vấn Nhanh Cùng AI ✨</h2>
+            <div class="reveal-up liquid-glass-strong rounded-[40px] p-6 md:p-8 shadow-2xl border-white/10">
+                <textarea id="general-ai-input" placeholder="Ví dụ: Tôi muốn setup phòng livestream 20m2 với hình ảnh lung linh và ánh sáng chuyên nghiệp..." class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-blue-500 h-32 mb-4 resize-none outline-none transition-all"></textarea>
+                <button id="general-ai-btn" onclick="generateGeneralAi()" class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold rounded-xl transition-all shadow-lg hover:brightness-110">
+                    <span class="btn-text">Nhận Đề Xuất Ngay ✨</span>
+                </button>
+                <div id="general-ai-result-box" class="hidden mt-8 p-6 liquid-glass rounded-2xl text-left border border-white/5">
+                    <div id="general-ai-result" class="text-slate-300 text-base leading-relaxed whitespace-pre-wrap mb-6"></div>
+                    <button onclick="openLeadModal()" class="w-full py-4 rounded-xl bg-blue-600/20 text-blue-300 border border-blue-500/30 font-bold hover:bg-blue-600/30 transition-all flex items-center justify-center gap-2 text-center text-white">
+                        <i data-lucide="phone-call" class="w-5 h-5 text-white"></i> Nhận báo giá và lộ trình ngay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Thu thập thông tin -->
+    <section class="py-24 px-6 bg-transparent relative overflow-hidden border-t border-white/5 text-left text-white">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="reveal-up text-left">
+                <h2 class="text-4xl md:text-6xl font-extrabold mb-6 text-white leading-tight">
+                    Sở hữu Studio <br>
+                    <span class="text-blue-500 underline decoration-blue-500/30 italic">Triệu View</span> <br>
+                    ngay hôm nay
+                </h2>
+                <p class="text-slate-400 text-xl mb-8 max-w-lg leading-relaxed text-left">
+                    Đừng để thiết bị là rào cản thành công của bạn. Để lại thông tin để chúng tôi tặng bạn <span class="text-white font-bold">Bản phác thảo kỹ thuật tối ưu chi phí</span> trong vòng 24h!
+                </p>
+                <ul class="space-y-4">
+                    <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check-circle-2" class="text-blue-500 w-6 h-6"></i> Khảo sát hiện trường miễn phí</li>
+                    <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check-circle-2" class="text-blue-500 w-6 h-6"></i> Tư vấn danh sách thiết bị chuyên sâu</li>
+                    <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check-circle-2" class="text-blue-500 w-6 h-6"></i> Hỗ trợ vận hành kỹ thuật 24/7</li>
+                </ul>
+            </div>
+            <div class="reveal-up liquid-glass-strong p-8 md:p-12 rounded-[40px] border-blue-500/20">
+                <form onsubmit="handleLeadSubmit(event)" class="space-y-5">
+                    <input required type="text" id="lead-name" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-blue-500 outline-none transition-all" placeholder="Họ và tên của bạn">
+                    <input required type="tel" id="lead-phone" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-blue-500 outline-none transition-all" placeholder="Số điện thoại / Zalo">
+                    <textarea id="lead-note" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-blue-500 outline-none transition-all h-24 placeholder:text-left" placeholder="Nhu cầu cụ thể của bạn..."></textarea>
+                    <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-xl transition-all shadow-lg shadow-blue-600/20 transform hover:scale-[1.02]">
+                        Nhận Phác Thảo & Báo Giá Ngay
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="py-24 border-t border-white/10 text-center bg-transparent text-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-3xl font-bold mb-14 text-slate-300 italic text-center">Liên hệ trực tiếp</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="tel:0843157010" class="group liquid-glass hover-shake-up hover-glow-blue p-8 flex flex-col items-center rounded-[40px]">
+                    <div class="p-4 rounded-full bg-blue-500/10 text-blue-400 mb-5 transition-transform group-hover:scale-110"><i data-lucide="phone" class="w-8 h-8"></i></div>
+                    <h4 class="text-white font-bold text-xl">0843 157 010</h4>
+                </a>
+                <a href="https://www.facebook.com/Daniel.Judge25" target="_blank" class="group liquid-glass hover-shake-up hover-glow-cyan p-8 flex flex-col items-center rounded-[40px]">
+                    <div class="p-4 rounded-full bg-cyan-500/10 text-cyan-400 mb-5 transition-transform group-hover:scale-110"><i data-lucide="message-circle" class="w-8 h-8"></i></div>
+                    <h4 class="text-white font-bold text-xl">Facebook Messenger</h4>
+                </a>
+                <a href="mailto:youwithme.work@gmail.com" class="group liquid-glass hover-shake-up hover-glow-purple p-8 flex flex-col items-center rounded-[40px]">
+                    <div class="p-4 rounded-full bg-purple-500/10 text-purple-400 mb-5 transition-transform group-hover:scale-110"><i data-lucide="mail" class="w-8 h-8"></i></div>
+                    <h4 class="text-white font-black text-sm md:text-base break-all">youwithme.work@gmail.com</h4>
+                </a>
+            </div>
+            <p class="mt-20 text-slate-600 text-sm italic">© 2026 Marc Studio. Đồng hành cùng thành công của bạn.</p>
+        </div>
+    </footer>
+
+    <!-- Zalo Floating -->
+    <a href="https://zalo.me/0843157010" target="_blank" class="zalo-float">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" class="w-8 h-8">
+    </a>
+
+    <!-- Modal Form -->
+    <div id="lead-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4 text-center text-white">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeLeadModal()"></div>
+        <div id="lead-modal-content" class="relative w-full max-w-md bg-[#0a0a0a] border border-blue-500/30 rounded-[40px] p-10 transform transition-all duration-300 scale-95 opacity-0 text-center shadow-2xl">
+            <button onclick="closeLeadModal()" class="absolute top-6 right-6 text-slate-500 hover:text-white text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <h3 class="text-2xl font-bold text-white mb-6 uppercase italic text-center">Đăng ký tư vấn</h3>
+            <form onsubmit="handleLeadSubmit(event)" class="space-y-4 text-left">
+                <input required type="text" placeholder="Họ và tên" class="w-full bg-white/5 border border-white/10 p-4 text-white outline-none focus:border-blue-500 rounded-xl">
+                <input required type="tel" placeholder="Số điện thoại / Zalo" class="w-full bg-white/5 border border-white/10 p-4 text-white outline-none focus:border-blue-500 rounded-xl">
+                <button type="submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:bg-blue-500 text-center">Gửi thông tin ngay</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Box -->
+    <div id="success-box" class="hidden fixed top-10 left-1/2 -translate-x-1/2 z-[300] bg-blue-600 text-white px-10 py-5 rounded-full shadow-2xl flex items-center gap-4 border border-blue-400/50">
+        <i data-lucide="check-circle" class="w-8 h-8 text-white"></i>
+        <span class="font-bold text-white">Gửi yêu cầu thành công! Marc Studio sẽ liên hệ sớm nhất.</span>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
+
+        async function fetchGemini(prompt, sys) {
+            const apiKey = ""; 
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: sys }] },
+                        tools: [{ "google_search": {} }]
+                    })
+                });
+                const data = await res.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (e) { return null; }
+        }
+
+        async function generateGeneralAi() {
+            const input = document.getElementById('general-ai-input');
+            const btn = document.getElementById('general-ai-btn');
+            const resultBox = document.getElementById('general-ai-result-box');
+            const resultText = document.getElementById('general-ai-result');
+            if (!input.value.trim() || btn.disabled) return;
+            btn.disabled = true;
+            btn.querySelector('.btn-text').innerText = "AI Đang phân tích kỹ thuật...";
+            const sys = "Bạn là Chuyên gia Tư vấn kỹ thuật livestream tại Marc Studio. Trả lời đúng 3 gạch đầu dòng cực ngắn gọn về TRẢI NGHIỆM hoàn hảo khách hàng nhận được. Hotline: 0843 157 010.";
+            const ans = await fetchGemini(input.value, sys);
+            if (ans) {
+                resultText.innerHTML = ans.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>').replace(/^[\*\-]\s+/gm, '• ');
+                resultBox.classList.remove('hidden');
+                setTimeout(() => resultBox.classList.add('opacity-100', 'translate-y-0'), 100);
+            }
+            btn.disabled = false;
+            btn.querySelector('.btn-text').innerText = "Nhận Đề Xuất Ngay ✨";
+        }
+
+        const leadModal = document.getElementById('lead-modal');
+        const leadContent = document.getElementById('lead-modal-content');
+
+        function openLeadModal() {
+            leadModal.classList.remove('hidden');
+            leadModal.classList.add('flex');
+            setTimeout(() => leadContent.classList.add('scale-100', 'opacity-100'), 50);
+        }
+
+        function closeLeadModal() {
+            leadContent.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => leadModal.classList.add('hidden'), 300);
+        }
+
+        function handleLeadSubmit(e) {
+            e.preventDefault();
+            closeLeadModal();
+            const success = document.getElementById('success-box');
+            success.classList.remove('hidden');
+            setTimeout(() => success.classList.add('hidden'), 4000);
+        }
+    </script>
+</body>
+</html>
