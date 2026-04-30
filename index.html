@@ -6,7 +6,19 @@
     <!-- BẢO MẬT: Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://formsubmit.co https://www.google.com; frame-src https://www.google.com https://www.gstatic.com; font-src 'self' data:; object-src 'none'; base-uri 'self';">
     <meta name="description" content="Marc Studio - Đơn vị cung cấp giải pháp Livestream chuyên nghiệp tiêu chuẩn quốc tế. Tư vấn, thiết lập studio, đào tạo nhân sự livestream toàn quốc.">
+    <!-- Open Graph (Facebook, Zalo) -->
+    <meta property="og:title" content="Marc Studio | Giải pháp Livestream chuyên nghiệp">
+    <meta property="og:description" content="Đơn vị cung cấp giải pháp Livestream chuyên nghiệp tiêu chuẩn quốc tế. Tư vấn, thiết lập studio, đào tạo nhân sự livestream toàn quốc.">
+    <meta property="og:image" content="https://marc.heliostalent.online/image/og-cover.png">
+    <meta property="og:url" content="https://marc.heliostalent.online">
+    <meta property="og:type" content="website">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="image/favicon.png">
     <title>Marc Studio | Giải pháp Livestream chuyên nghiệp</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -222,6 +234,14 @@
                 <i data-lucide="menu"></i>
             </button>
         </div>
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-white/5 bg-black/90 backdrop-blur-xl px-6 py-8 space-y-6 animate-in slide-in-from-top duration-300">
+            <a href="#about" onclick="toggleMobileMenu()" class="block text-lg font-medium text-slate-300 hover:text-white">Về Chúng Tôi</a>
+            <a href="#services" onclick="toggleMobileMenu()" class="block text-lg font-medium text-slate-300 hover:text-white">Giải Pháp</a>
+            <a href="#workflow" onclick="toggleMobileMenu()" class="block text-lg font-medium text-slate-300 hover:text-white">Quy Trình</a>
+            <a href="#booking" onclick="toggleMobileMenu()" class="block text-lg font-medium text-slate-300 hover:text-white">Đặt Lịch</a>
+            <button onclick="openLeadModal(); toggleMobileMenu();" class="w-full py-4 rounded-xl bg-white text-black font-bold text-lg">Bắt đầu ngay</button>
+        </div>
     </nav> 
 
     <!-- Hero Section -->
@@ -233,15 +253,15 @@
                 <div class="animate-scroll-x">
                     <!-- Set 1 -->
                     <div class="flex gap-12 pr-12">
-                        <img src="image/1.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
-                        <img src="image/2.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
-                        <img src="image/3.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/1.jpg" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/2.jpg" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/3.jpg" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
                     </div>
                     <!-- Set 2 (lặp lại để vòng lặp mượt) -->
                     <div class="flex gap-12 pr-12">
-                        <img src="image/1.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
-                        <img src="image/2.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
-                        <img src="image/3.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/1.jpg" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/2.jpg" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/3.jpg" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
                     </div>
                 </div>
             </div>
@@ -263,7 +283,7 @@
     <!-- --- VỀ CHÚNG TÔI --- -->
     <section id="about" class="px-4 md:px-6 py-8 md:py-24 relative overflow-hidden bg-transparent">
         <div class="max-w-7xl mx-auto relative z-10 text-white text-center">
-            <motion.div class="reveal-up mb-6 md:mb-16 pt-2 md:pt-10">
+            <div class="reveal-up mb-6 md:mb-16 pt-2 md:pt-10">
                 <h2 class="text-2xl md:text-5xl font-bold mb-3 md:mb-8">Về Chúng Tôi</h2>
                 <p class="text-slate-400 max-w-4xl mx-auto text-sm md:text-xl leading-relaxed">
                     Đơn vị tư vấn & MCN hàng đầu TikTok Live với <strong class="text-white">hơn 5 năm kinh nghiệm</strong>. Marc Studio cung cấp giải pháp <strong class="text-white">tiêu chuẩn quốc tế</strong>.<br class="hidden md:block"/><br class="hidden md:block"/>
@@ -417,7 +437,7 @@
                         <h4 class="text-white font-bold text-sm md:text-xl">Liên lạc</h4>
                     </div>
                 </a>
-                <a href="https://www.facebook.com/Daniel.Judge25" target="_blank" class="group liquid-glass hover-shake-up hover-glow-cyan p-4 md:p-8 flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 rounded-2xl md:rounded-[40px]">
+                <a href="https://www.facebook.com/Daniel.Judge25" target="_blank" rel="noopener noreferrer" class="group liquid-glass hover-shake-up hover-glow-cyan p-4 md:p-8 flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 rounded-2xl md:rounded-[40px]">
                     <div class="p-2 md:p-4 rounded-full bg-cyan-500/10 text-cyan-400 md:mb-5 transition-transform group-hover:scale-110 shrink-0"><i data-lucide="message-circle" class="w-5 h-5 md:w-8 md:h-8"></i></div>
                     <div class="text-left md:text-center">
                         <p class="text-slate-400 text-xs md:text-sm mb-0.5 md:mb-1 font-medium">Facebook Messenger</p>
@@ -437,7 +457,7 @@
     </footer>
 
     <!-- Zalo Floating -->
-    <a href="https://zalo.me/0843157010" target="_blank" class="zalo-float">
+    <a href="https://zalo.me/0843157010" target="_blank" rel="noopener noreferrer" class="zalo-float">
         <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" class="w-8 h-8">
     </a>
 
@@ -812,6 +832,24 @@
                 btn.innerText = '✅ Đã gửi thành công';
                 btn.classList.add('opacity-60', 'cursor-not-allowed');
             });
+        }
+        // === MOBILE MENU LOGIC ===
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenuBtn.querySelector('i');
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.setAttribute('data-lucide', 'menu');
+            } else {
+                icon.setAttribute('data-lucide', 'x');
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleMobileMenu);
         }
     </script>
 </body>
