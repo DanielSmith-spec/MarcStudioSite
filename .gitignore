@@ -1,0 +1,11 @@
+# BẢO MẬT: Chặn file chứa API key & dữ liệu nhạy cảm
+gemini-proxy.js
+api-proxy.html
+*.env
+*.key
+*.secret
+*-credentials.json
+
+# Ảnh gốc backup
+image/original_backup/
+image/optimized/

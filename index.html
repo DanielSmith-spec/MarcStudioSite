@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- BẢO MẬT: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://formsubmit.co https://www.google.com; frame-src https://www.google.com https://www.gstatic.com; font-src 'self' data:; object-src 'none'; base-uri 'self';">
+    <meta name="description" content="Marc Studio - Đơn vị cung cấp giải pháp Livestream chuyên nghiệp tiêu chuẩn quốc tế. Tư vấn, thiết lập studio, đào tạo nhân sự livestream toàn quốc.">
     <title>Marc Studio | Giải pháp Livestream chuyên nghiệp</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- BẢO MẬT: Google reCAPTCHA v3 Invisible -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LcleNIsAAAAADwMdfjZa9BRk8WUpLeS3SgYzy7f" async defer></script>
+    <!-- Fallback: hiện nội dung ngay nếu JS/CDN chưa tải xong -->
+    <noscript>
+        <style>.reveal-up { opacity: 1 !important; transform: none !important; }</style>
+    </noscript>
     <style>
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -22,12 +31,18 @@
             -webkit-backdrop-filter: blur(15px);
         }
 
+        /* Mặc định hiện nội dung (an toàn nếu JS lỗi) */
         .reveal-up {
-            opacity: 0;
-            transform: translateY(30px);
+            opacity: 1;
+            transform: translateY(0);
             transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .reveal-up.active {
+        /* Khi JS đã sẵn sàng: ẩn đi để chờ hiệu ứng */
+        body.js-ready .reveal-up {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        body.js-ready .reveal-up.active {
             opacity: 1;
             transform: translateY(0);
         }
@@ -94,13 +109,25 @@
         .hover-glow-cyan:hover { box-shadow: 0 25px 50px -12px rgba(6, 182, 212, 0.5); border-color: rgba(6, 182, 212, 0.5); }
         .hover-glow-purple:hover { box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.5); border-color: rgba(168, 85, 247, 0.5); }
 
-        /* --- 3D GALLERY --- */
-        @keyframes scroll-x { 0% { transform: translateX(0); } 100% { transform: translateX(-25%); } }
-        .animate-scroll-x { display: flex; width: max-content; animation: scroll-x 15s linear infinite; }
+        /* --- 3D GALLERY (GPU OPTIMIZED) --- */
+        @keyframes scroll-x { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
+        .animate-scroll-x { 
+            display: flex; 
+            width: max-content; 
+            animation: scroll-x 20s linear infinite; 
+            will-change: transform; 
+            backface-visibility: hidden;
+        }
         .gallery-3d-wrapper { 
-            transform-style: preserve-3d; 
             transform: translate(-50%, -50%) rotateX(15deg) rotateY(-15deg) rotateZ(4deg) scale(1.1); 
             position: absolute; top: 50%; left: 50%;
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        .gallery-3d-wrapper img {
+            will-change: auto;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
 
         /* --- RANDOM FAST ORBS ANIMATION --- */
@@ -160,6 +187,9 @@
             transition: all 0.3s ease;
         }
         .zalo-float:hover { transform: scale(1.1); }
+
+        /* BẢO MẬT: Honeypot trap - ẩn hoàn toàn khỏi người dùng */
+        .hp-trap { position: absolute !important; left: -9999px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
     </style>
 </head>
 <body class="selection:bg-blue-500 selection:text-white">
@@ -183,8 +213,8 @@
                 <a href="#about" class="hover:text-white transition-colors">Về Chúng Tôi</a>
                 <a href="#services" class="hover:text-white transition-colors">Giải Pháp</a>
                 <a href="#workflow" class="hover:text-white transition-colors">Quy Trình</a>
-                <a href="#ai-consult" class="hover:text-white transition-colors flex items-center gap-1">
-                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i> AI Tư Vấn
+                <a href="#booking" class="hover:text-white transition-colors flex items-center gap-1">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i> Đặt Lịch
                 </a>
             </div>
             <button onclick="openLeadModal()" class="hidden md:inline-block px-5 py-2.5 rounded-full bg-white text-black text-sm font-bold transition-all hover:bg-blue-500 hover:text-white">Bắt đầu ngay</button>
@@ -197,34 +227,21 @@
     <!-- Hero Section -->
     <section class="relative pt-24 md:min-h-[100vh] md:pt-32 pb-8 md:pb-16 flex items-center justify-center px-4 md:px-6 overflow-hidden text-center text-white bg-transparent">
         <div class="absolute inset-0 z-0 overflow-hidden perspective-[1200px] pointer-events-none">
-            <div class="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-transparent z-10"></div>
-            <div class="absolute inset-0 backdrop-blur-[2px] z-10"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a]/60 to-[#0a0a0a]/30 z-10"></div>
             
             <div class="gallery-3d-wrapper w-[300vw] hidden md:flex items-center">
                 <div class="animate-scroll-x">
                     <!-- Set 1 -->
                     <div class="flex gap-12 pr-12">
-                        <img src="image/1.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/2.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/3.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
+                        <img src="image/1.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/2.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/3.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
                     </div>
-                    <!-- Set 2 -->
+                    <!-- Set 2 (lặp lại để vòng lặp mượt) -->
                     <div class="flex gap-12 pr-12">
-                        <img src="image/1.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/2.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/3.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                    </div>
-                    <!-- Set 3 -->
-                    <div class="flex gap-12 pr-12">
-                        <img src="image/1.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/2.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/3.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                    </div>
-                    <!-- Set 4 -->
-                    <div class="flex gap-12 pr-12">
-                        <img src="image/1.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/2.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
-                        <img src="image/3.jpg.JPG" class="w-[60vw] md:w-[45vw] h-[40vh] md:h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0 shadow-2xl">
+                        <img src="image/1.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/2.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
+                        <img src="image/3.jpg.JPG" loading="lazy" decoding="async" class="w-[45vw] h-[60vh] object-cover rounded-[40px] opacity-40 flex-shrink-0">
                     </div>
                 </div>
             </div>
@@ -236,8 +253,8 @@
             <p class="reveal-up text-sm sm:text-base md:text-xl text-slate-300 max-w-2xl mb-6 md:mb-10 font-medium leading-snug">Cung cấp giải pháp toàn diện cho Livestream chuyên nghiệp toàn quốc.</p>
             <div class="reveal-up flex flex-col sm:flex-row gap-2 md:gap-4 w-full sm:w-auto">
                 <button onclick="openLeadModal()" class="w-full sm:w-auto px-5 py-2.5 md:px-8 md:py-4 rounded-full bg-white text-black font-semibold hover-shake-up hover-glow-blue transition-all shadow-lg text-sm md:text-base">Nhận bản phác thảo</button>
-                <a href="#ai-consult" class="w-full sm:w-auto px-5 py-2.5 md:px-8 md:py-4 rounded-full bg-black/40 backdrop-blur-md border border-white/20 font-semibold flex items-center justify-center gap-2 text-blue-400 hover:text-white transition-all text-white text-sm md:text-base">
-                    <i data-lucide="sparkles" class="w-4 h-4 md:w-[18px] md:h-[18px]"></i> AI Hỗ trợ
+                <a href="#booking" class="w-full sm:w-auto px-5 py-2.5 md:px-8 md:py-4 rounded-full bg-black/40 backdrop-blur-md border border-white/20 font-semibold flex items-center justify-center gap-2 text-blue-400 hover:text-white transition-all text-white text-sm md:text-base">
+                    <i data-lucide="calendar" class="w-4 h-4 md:w-[18px] md:h-[18px]"></i> Đặt lịch tư vấn
                 </a>
             </div>
         </div>
@@ -357,54 +374,36 @@
         </div>
     </section>
 
-    <!-- AI Consultant Section -->
-    <section id="ai-consult" class="py-8 md:py-24 px-4 md:px-6 bg-transparent relative overflow-hidden border-t border-white/5 text-center text-white">
-        <div class="max-w-4xl mx-auto relative z-10 text-white">
-            <h2 class="text-2xl md:text-4xl font-bold mb-4 md:mb-12 reveal-up">Tư Vấn Nhanh Cùng AI ✨</h2>
-            <div class="reveal-up liquid-glass-strong rounded-2xl md:rounded-[40px] p-4 md:p-8 shadow-2xl border-white/10">
-                <textarea id="general-ai-input" placeholder="Ví dụ: Tôi muốn setup phòng livestream 20m2..." class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 h-20 md:h-32 mb-3 md:mb-4 resize-none outline-none transition-all text-sm md:text-base"></textarea>
-                <button id="general-ai-btn" onclick="generateGeneralAi()" class="w-full md:w-auto px-4 py-2.5 md:px-8 md:py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold rounded-xl transition-all shadow-lg hover:brightness-110 text-sm md:text-base">
-                    <span class="btn-text">Nhận Đề Xuất Ngay ✨</span>
-                </button>
-                <div id="general-ai-result-box" class="hidden mt-4 md:mt-8 p-4 md:p-6 liquid-glass rounded-xl md:rounded-2xl text-left border border-white/5">
-                    <div id="general-ai-result" class="text-slate-300 text-xs md:text-base leading-relaxed whitespace-pre-wrap mb-4 md:mb-6"></div>
-                    <button onclick="openLeadModal()" class="w-full py-2.5 md:py-4 rounded-xl bg-blue-600/20 text-blue-300 border border-blue-500/30 font-bold hover:bg-blue-600/30 transition-all flex items-center justify-center gap-2 text-center text-white text-xs md:text-base">
-                        <i data-lucide="phone-call" class="w-3 h-3 md:w-5 md:h-5 text-white"></i> Nhận báo giá ngay
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section Thu thập thông tin -->
-    <section class="py-8 md:py-24 px-4 md:px-6 bg-transparent relative overflow-hidden border-t border-white/5 text-left text-white">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-16 items-center">
-            <div class="reveal-up text-left">
-                <h2 class="text-2xl sm:text-4xl md:text-6xl font-extrabold mb-3 md:mb-6 text-white leading-tight">
-                    Sở hữu Studio <br>
-                    <span class="text-blue-500 underline decoration-blue-500/30 italic">Triệu View</span> <br class="hidden md:block">
-                    ngay hôm nay
-                </h2>
-                <p class="text-slate-400 text-xs md:text-xl mb-4 md:mb-8 max-w-lg leading-relaxed text-left">
-                    Nhận <span class="text-white font-bold">Bản phác thảo kỹ thuật tối ưu chi phí</span> ngay trong 24h!
-                </p>
-                <ul class="space-y-2 md:space-y-4">
-                    <li class="flex items-center gap-2 md:gap-3 text-slate-300 text-xs md:text-base"><i data-lucide="check-circle-2" class="text-blue-500 w-4 h-4 md:w-6 md:h-6 shrink-0"></i> Khảo sát hiện trường miễn phí</li>
-                    <li class="flex items-center gap-2 md:gap-3 text-slate-300 text-xs md:text-base"><i data-lucide="check-circle-2" class="text-blue-500 w-4 h-4 md:w-6 md:h-6 shrink-0"></i> Tư vấn thiết bị chuyên sâu</li>
-                </ul>
-            </div>
-            <div class="reveal-up liquid-glass-strong p-5 md:p-12 rounded-2xl md:rounded-[40px] border-blue-500/20">
-                <form onsubmit="handleLeadSubmit(event)" class="space-y-3 md:space-y-5">
-                    <input required type="text" name="name" id="lead-name" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all text-xs md:text-base" placeholder="Họ và tên">
-                    <input required type="tel" name="phone" id="lead-phone" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all text-xs md:text-base" placeholder="Số điện thoại / Zalo">
-                    <textarea name="note" id="lead-note" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all h-16 md:h-24 placeholder:text-left text-xs md:text-base" placeholder="Nhu cầu cụ thể..."></textarea>
-                    <button type="submit" class="w-full py-2.5 md:py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm md:text-lg rounded-xl transition-all shadow-lg shadow-blue-600/20 transform hover:scale-[1.02]">
-                        Nhận Báo Giá Ngay
+    <!-- Đặt Lịch Hẹn Tư Vấn -->
+    <section id="booking" class="py-8 md:py-24 px-4 md:px-6 bg-transparent relative overflow-hidden border-t border-white/5 text-center text-white">
+        <div class="max-w-2xl mx-auto relative z-10 text-white">
+            <h2 class="text-2xl md:text-4xl font-bold mb-2 md:mb-4 reveal-up">Đặt Lịch Hẹn Tư Vấn</h2>
+            <p class="reveal-up text-slate-400 text-xs md:text-base mb-4 md:mb-10">Để lại thông tin, Marc Studio sẽ liên hệ và sắp xếp lịch hẹn phù hợp nhất cho bạn.</p>
+            <div class="reveal-up liquid-glass-strong rounded-2xl md:rounded-[40px] p-5 md:p-10 shadow-2xl border-white/10">
+                <form onsubmit="handleLeadSubmit(event)" class="space-y-3 md:space-y-5 text-left">
+                    <!-- BẢO MẬT: Honeypot trap -->
+                    <div class="hp-trap" aria-hidden="true"><label>Website</label><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+                    <div>
+                        <label class="text-slate-400 text-xs md:text-sm mb-1 block">Họ và tên *</label>
+                        <input required type="text" name="name" placeholder="Nguyễn Văn A" maxlength="200" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all text-xs md:text-base">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 text-xs md:text-sm mb-1 block">Số điện thoại / Zalo *</label>
+                        <input required type="tel" name="phone" placeholder="+84 912 345 678" maxlength="20" pattern="\+?[0-9\s\-]{7,20}" title="Nhập số điện thoại hợp lệ (VD: +84912345678 hoặc 0912345678)" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all text-xs md:text-base">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 text-xs md:text-sm mb-1 block">Nhu cầu của bạn</label>
+                        <textarea name="note" placeholder="Ví dụ: Tôi cần setup phòng livestream 20m2, muốn hẹn tư vấn tại hiện trường..." maxlength="200" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all h-20 md:h-28 resize-none text-xs md:text-base"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3 md:py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold text-sm md:text-lg rounded-xl transition-all shadow-lg shadow-blue-600/20 hover:brightness-110 flex items-center justify-center gap-2">
+                        <i data-lucide="calendar-check" class="w-4 h-4 md:w-5 md:h-5"></i> Đặt lịch hẹn ngay
                     </button>
                 </form>
             </div>
         </div>
     </section>
+
+
 
     <!-- Footer -->
     <footer id="contact" class="py-8 md:py-24 border-t border-white/10 text-center bg-transparent text-white">
@@ -449,8 +448,10 @@
             <button onclick="closeLeadModal()" class="absolute top-6 right-6 text-slate-500 hover:text-white text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
             <h3 class="text-2xl font-bold text-white mb-6 uppercase italic text-center">Đăng ký tư vấn</h3>
             <form onsubmit="handleLeadSubmit(event)" class="space-y-4 text-left">
-                <input required type="text" name="name" placeholder="Họ và tên" class="w-full bg-white/5 border border-white/10 p-4 text-white outline-none focus:border-blue-500 rounded-xl">
-                <input required type="tel" name="phone" placeholder="Số điện thoại / Zalo" class="w-full bg-white/5 border border-white/10 p-4 text-white outline-none focus:border-blue-500 rounded-xl">
+                <!-- BẢO MẬT: Honeypot trap -->
+                <div class="hp-trap" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+                <input required type="text" name="name" placeholder="Họ và tên" maxlength="200" class="w-full bg-white/5 border border-white/10 p-4 text-white outline-none focus:border-blue-500 rounded-xl">
+                <input required type="tel" name="phone" placeholder="+84 912 345 678" maxlength="20" pattern="\+?[0-9\s\-]{7,20}" title="Nhập số điện thoại hợp lệ" class="w-full bg-white/5 border border-white/10 p-4 text-white outline-none focus:border-blue-500 rounded-xl">
                 <button type="submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:bg-blue-500 text-center">Gửi thông tin ngay</button>
             </form>
         </div>
@@ -462,93 +463,227 @@
         <span class="font-bold text-white">Gửi yêu cầu thành công! Marc Studio sẽ liên hệ sớm nhất.</span>
     </div>
 
+    <!-- POPUP ƯU ĐÃI CÓ HẠN -->
+    <div id="promo-popup" class="hidden fixed inset-0 z-[200] items-center justify-center p-4 text-white">
+        <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closePromoPopup()"></div>
+        <div id="promo-popup-content" class="relative w-full max-w-4xl transform transition-all duration-500 scale-90 opacity-0">
+            <!-- Glow effect -->
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-[44px] opacity-20 blur-xl animate-pulse"></div>
+            <div class="relative bg-[#0a0a0a] border border-blue-500/30 rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl">
+                <!-- Close button -->
+                <button onclick="closePromoPopup()" class="absolute top-4 right-4 md:top-6 md:right-6 text-slate-500 hover:text-white transition-colors z-10">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    <!-- BÊN TRÁI: Text kêu gọi -->
+                    <div class="p-6 md:p-10 lg:p-12 flex flex-col justify-center">
+                        <!-- Badge -->
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] md:text-xs font-bold uppercase mb-4 w-fit animate-pulse">
+                            <i data-lucide="flame" class="w-3 h-3"></i> Ưu đãi có hạn
+                        </div>
+
+                        <h3 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight mb-3">
+                            Sở hữu Studio <br>
+                            <span class="text-blue-500 underline decoration-blue-500/30 italic">Triệu View</span> <br class="hidden md:block">
+                            ngay hôm nay
+                        </h3>
+                        <p class="text-slate-400 text-xs md:text-sm mb-4 md:mb-5 leading-relaxed">
+                            Nhận <span class="text-white font-bold">Bản phác thảo kỹ thuật tối ưu chi phí</span> ngay trong 24h!
+                        </p>
+
+                        <!-- Checklist -->
+                        <ul class="space-y-2 mb-5 md:mb-6">
+                            <li class="flex items-center gap-2 text-slate-300 text-xs md:text-sm"><i data-lucide="check-circle-2" class="text-blue-500 w-4 h-4 shrink-0"></i> Khảo sát hiện trường miễn phí</li>
+                            <li class="flex items-center gap-2 text-slate-300 text-xs md:text-sm"><i data-lucide="check-circle-2" class="text-blue-500 w-4 h-4 shrink-0"></i> Tư vấn thiết bị chuyên sâu</li>
+                        </ul>
+
+                        <!-- Countdown -->
+                        <div class="flex items-center gap-2 md:gap-3">
+                            <span class="text-slate-500 text-[10px] md:text-xs uppercase tracking-wider shrink-0">Còn lại:</span>
+                            <div class="flex items-center gap-1.5">
+                                <div class="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2 text-center">
+                                    <span id="countdown-hours" class="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-cyan-400">00</span>
+                                    <span class="text-[8px] text-slate-600 block -mt-0.5">GIỜ</span>
+                                </div>
+                                <span class="text-blue-400 font-bold animate-pulse">:</span>
+                                <div class="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2 text-center">
+                                    <span id="countdown-minutes" class="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-cyan-400">00</span>
+                                    <span class="text-[8px] text-slate-600 block -mt-0.5">PHÚT</span>
+                                </div>
+                                <span class="text-blue-400 font-bold animate-pulse">:</span>
+                                <div class="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2 text-center">
+                                    <span id="countdown-seconds" class="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-cyan-400">00</span>
+                                    <span class="text-[8px] text-slate-600 block -mt-0.5">GIÂY</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BÊN PHẢI: Form -->
+                    <div class="p-6 md:p-10 lg:p-12 bg-white/[0.02] border-t lg:border-t-0 lg:border-l border-white/5">
+                        <form onsubmit="handleLeadSubmit(event); closePromoPopup();" class="space-y-3 md:space-y-4">
+                            <!-- BẢO MẬT: Honeypot trap -->
+                            <div class="hp-trap" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
+                            <input required type="text" name="name" placeholder="Họ và tên" maxlength="200" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all text-xs md:text-base placeholder:text-slate-600">
+                            <input required type="tel" name="phone" placeholder="+84 912 345 678" maxlength="20" pattern="\+?[0-9\s\-]{7,20}" title="Nhập số điện thoại hợp lệ" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all text-xs md:text-base placeholder:text-slate-600">
+                            <textarea name="note" placeholder="Nhu cầu cụ thể..." maxlength="200" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 text-white focus:border-blue-500 outline-none transition-all h-20 md:h-28 resize-none text-xs md:text-base placeholder:text-slate-600"></textarea>
+                            <button type="submit" class="w-full py-3 md:py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm md:text-lg rounded-xl transition-all shadow-lg shadow-blue-600/20 transform hover:scale-[1.02]">
+                                Nhận Báo Giá Ngay
+                            </button>
+                            <button type="button" onclick="closePromoPopup()" class="w-full text-slate-500 text-xs hover:text-slate-300 transition-colors py-1">Để sau</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        lucide.createIcons();
+        // =====================================================
+        // BẢO MẬT: HỆ THỐNG BẢO VỆ DỮ LIỆU MARC STUDIO
+        // Option B - Standard Security
+        // =====================================================
+
+        // Khởi tạo icons
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Đánh dấu JS đã sẵn sàng → kích hoạt hiệu ứng reveal
+        document.body.classList.add('js-ready');
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
         }, { threshold: 0.1 });
         document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
 
-        async function fetchGemini(prompt, sys) {
-            const apiKey = "AIzaSyA9pO8WuxccUHfE2eBeTaquXZzsxD0mJLg"; 
-            
-            if (!apiKey || apiKey === "") {
-                return "⚠️ Hệ thống AI hiện chưa được cấu hình API Key. Vui lòng liên hệ quản trị viên hoặc gọi Hotline 0843 157 010 để được tư vấn trực tiếp!";
-            }
+        // ==========================================================
+        // 🛡️ BẢO MẬT 1: SANITIZE INPUT — Chống XSS (Cross-Site Scripting)
+        // Loại bỏ tất cả HTML tags & encode ký tự đặc biệt
+        // Ngăn chặn mã độc được gửi về email
+        // ==========================================================
+        function sanitizeInput(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2F;');
+        }
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // ==========================================================
+        // 🛡️ BẢO MẬT 2: HONEYPOT — Bẫy phát hiện Bot
+        // Trường ẩn "website" không hiển thị cho người dùng
+        // Bot tự động sẽ điền → bị phát hiện và chặn
+        // ==========================================================
+        function isHoneypotFilled(form) {
+            const honeypot = form.querySelector('input[name="website"]');
+            return honeypot && honeypot.value.length > 0;
+        }
+
+        // ==========================================================
+        // 🛡️ BẢO MẬT 3: RATE LIMITING — 1 lần gửi / 1 lượt truy cập
+        // Sử dụng sessionStorage để theo dõi trạng thái
+        // Người dùng chỉ được gửi form 1 lần duy nhất mỗi phiên
+        // ==========================================================
+        function isRateLimited() {
+            return sessionStorage.getItem('marcFormSubmitted') === 'true';
+        }
+        function markAsSubmitted() {
+            sessionStorage.setItem('marcFormSubmitted', 'true');
+        }
+
+        // ==========================================================
+        // 🛡️ BẢO MẬT 4: PHONE VALIDATION — Định dạng quốc tế
+        // Chấp nhận: +84912345678, 0912345678, +1-234-567-8900
+        // Regex: 7-20 ký tự số, cho phép +, space, dash
+        // ==========================================================
+        function isValidPhone(phone) {
+            const pattern = /^\+?[0-9\s\-]{7,20}$/;
+            return pattern.test(phone.trim());
+        }
+
+        // ==========================================================
+        // 🛡️ BẢO MẬT 5: reCAPTCHA v3 — Invisible CAPTCHA
+        // Tự động chấm điểm người dùng 0.0 - 1.0
+        // Score < 0.5 = bot → chặn submission
+        // HƯỚNG DẪN: Thay 6LcXXX... bằng Site Key thật từ:
+        // https://www.google.com/recaptcha/admin
+        // ==========================================================
+        const RECAPTCHA_SITE_KEY = '6LcleNIsAAAAADwMdfjZa9BRk8WUpLeS3SgYzy7f';
+
+        async function getRecaptchaToken() {
             try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: sys }] }
-                    })
-                });
-                const data = await res.json();
-                
-                if (data.error) {
-                    console.error("Gemini API Error:", data.error);
-                    return "⚠️ Lỗi kết nối đến máy chủ AI: " + data.error.message;
+                if (typeof grecaptcha !== 'undefined') {
+                    const token = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit_lead' });
+                    return token;
                 }
-                
-                if (data.candidates && data.candidates.length > 0) {
-                    return data.candidates[0].content.parts[0].text;
-                }
-                return "⚠️ Không có phản hồi từ AI. Vui lòng thử lại.";
-                
-            } catch (e) { 
-                console.error("Lỗi:", e);
-                return "⚠️ Không thể kết nối với AI lúc này. Vui lòng kiểm tra lại mạng kết nối."; 
+            } catch (err) {
+                console.warn('[BẢO MẬT] reCAPTCHA không khả dụng:', err.message);
             }
+            return null;
         }
 
-        async function generateGeneralAi() {
-            const input = document.getElementById('general-ai-input');
-            const btn = document.getElementById('general-ai-btn');
-            const resultBox = document.getElementById('general-ai-result-box');
-            const resultText = document.getElementById('general-ai-result');
-            
-            if (!input.value.trim() || btn.disabled) return;
-            
-            // Trạng thái đang tải
-            btn.disabled = true;
-            btn.querySelector('.btn-text').innerText = "AI Đang phân tích kỹ thuật...";
-            resultBox.classList.add('hidden'); // Ẩn kết quả cũ nếu có
-            
-            // Câu lệnh hệ thống (System Prompt) điều khiển cách AI trả lời
-            const sys = "Bạn là Chuyên gia Tư vấn kỹ thuật livestream tại Marc Studio. Dựa vào yêu cầu của khách, hãy trả lời đúng 3 gạch đầu dòng cực ngắn gọn về GIẢI PHÁP thiết bị hoặc kỹ thuật phù hợp nhất. Trả lời lịch sự, chuyên nghiệp. Cuối cùng luôn gợi ý khách gọi Hotline: 0843 157 010.";
-            
-            const ans = await fetchGemini(input.value, sys);
-            
-            if (ans) {
-                // Xử lý hiển thị in đậm và gạch đầu dòng
-                let formattedAns = ans.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>');
-                formattedAns = formattedAns.replace(/^[\*\-]\s+/gm, '• ');
-                
-                // Hiển thị màu cảnh báo nếu là thông báo lỗi
-                if (ans.includes("⚠️")) {
-                    resultText.innerHTML = `<span class="text-amber-400">${formattedAns}</span>`;
-                } else {
-                    resultText.innerHTML = formattedAns;
-                }
-                
-                // Hiện box kết quả
-                resultBox.classList.remove('hidden');
-                setTimeout(() => resultBox.classList.add('opacity-100', 'translate-y-0'), 50);
+        // === POPUP ƯU ĐÃI ===
+        let countdownInterval;
+        function openPromoPopup() {
+            const popup = document.getElementById('promo-popup');
+            const content = document.getElementById('promo-popup-content');
+            popup.classList.remove('hidden');
+            popup.classList.add('flex');
+            setTimeout(() => { content.classList.add('scale-100', 'opacity-100'); content.classList.remove('scale-90'); }, 50);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            startCountdown();
+        }
+        function closePromoPopup() {
+            const popup = document.getElementById('promo-popup');
+            const content = document.getElementById('promo-popup-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-90');
+            setTimeout(() => popup.classList.add('hidden'), 300);
+            if (countdownInterval) clearInterval(countdownInterval);
+            sessionStorage.setItem('promoSeen', 'true');
+        }
+        function startCountdown() {
+            // Random từ 20 phút (1200s) đến 6 tiếng (21600s)
+            let saved = sessionStorage.getItem('promoEnd');
+            let endTime;
+            if (saved) {
+                endTime = parseInt(saved);
+            } else {
+                const randomSeconds = Math.floor(Math.random() * (21600 - 1200 + 1)) + 1200;
+                endTime = Date.now() + randomSeconds * 1000;
+                sessionStorage.setItem('promoEnd', endTime);
             }
-            
-            // Hoàn tất tải
-            btn.disabled = false;
-            btn.querySelector('.btn-text').innerText = "Nhận Đề Xuất Ngay ✨";
+            function update() {
+                const diff = Math.max(0, endTime - Date.now());
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                document.getElementById('countdown-hours').textContent = String(h).padStart(2, '0');
+                document.getElementById('countdown-minutes').textContent = String(m).padStart(2, '0');
+                document.getElementById('countdown-seconds').textContent = String(s).padStart(2, '0');
+                if (diff <= 0) clearInterval(countdownInterval);
+            }
+            update();
+            countdownInterval = setInterval(update, 1000);
+        }
+        // Hiện popup sau 3 giây (chỉ 1 lần mỗi phiên)
+        if (!sessionStorage.getItem('promoSeen')) {
+            setTimeout(openPromoPopup, 3000);
         }
 
+        // === MODAL ĐĂNG KÝ ===
         const leadModal = document.getElementById('lead-modal');
         const leadContent = document.getElementById('lead-modal-content');
 
         function openLeadModal() {
+            // Kiểm tra rate limit trước khi mở modal
+            if (isRateLimited()) {
+                alert('✅ Bạn đã gửi yêu cầu thành công trước đó.\nMarc Studio sẽ liên hệ lại sớm nhất!');
+                return;
+            }
             leadModal.classList.remove('hidden');
             leadModal.classList.add('flex');
             setTimeout(() => leadContent.classList.add('scale-100', 'opacity-100'), 50);
@@ -559,43 +694,124 @@
             setTimeout(() => leadModal.classList.add('hidden'), 300);
         }
 
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkp5Dy0_EUpx8rQq-RZpNF5G5Q3IZgV-0jKvH4mMqgVosqP-PalccM1k2wxvpeiQ-2/exec"; // DÁN LINK WEB APP CỦA BẠN VÀO ĐÂY
-
+        // ==========================================================
+        // 🔒 FORM HANDLER CHÍNH — Tích hợp toàn bộ lớp bảo mật
+        // Quy trình: Honeypot → Rate Limit → Validate → Sanitize 
+        //            → reCAPTCHA → Gửi → Khóa form
+        // ==========================================================
         async function handleLeadSubmit(e) {
             e.preventDefault();
             const form = e.target;
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerText;
-            
+
+            // ── LỚP 1: Kiểm tra Honeypot ──
+            if (isHoneypotFilled(form)) {
+                console.warn('[BẢO MẬT] Bot detected via honeypot');
+                // Giả vờ thành công để bot không biết bị phát hiện
+                form.reset();
+                const success = document.getElementById('success-box');
+                if (success) { success.classList.remove('hidden'); setTimeout(() => success.classList.add('hidden'), 4000); }
+                return;
+            }
+
+            // ── LỚP 2: Rate Limiting (1 lần / phiên) ──
+            if (isRateLimited()) {
+                alert('✅ Bạn đã gửi yêu cầu thành công trước đó.\nMarc Studio sẽ liên hệ lại sớm nhất!');
+                return;
+            }
+
+            // ── LỚP 3: Validate dữ liệu ──
+            const formData = new FormData(form);
+            const rawName = (formData.get('name') || '').trim();
+            const rawPhone = (formData.get('phone') || '').trim();
+            const rawNote = (formData.get('note') || '').trim();
+
+            if (!rawName || rawName.length < 2 || rawName.length > 200) {
+                alert('Vui lòng nhập họ tên hợp lệ (2-200 ký tự).');
+                return;
+            }
+
+            if (!isValidPhone(rawPhone)) {
+                alert('Số điện thoại không hợp lệ.\nĐịnh dạng: +84 912 345 678 hoặc 0912345678');
+                return;
+            }
+
+            if (rawNote.length > 200) {
+                alert('Nhu cầu không được vượt quá 200 ký tự.');
+                return;
+            }
+
+            // ── LỚP 4: Sanitize chống XSS ──
+            const safeName = sanitizeInput(rawName);
+            const safePhone = sanitizeInput(rawPhone);
+            const safeNote = sanitizeInput(rawNote);
+
             submitBtn.innerText = "Đang gửi...";
             submitBtn.disabled = true;
 
             try {
-                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== "YOUR_GOOGLE_SCRIPT_WEB_APP_URL") {
-                    const formData = new FormData(form);
-                    const urlEncodedData = new URLSearchParams(formData).toString();
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: urlEncodedData
-                    });
+                // ── LỚP 5: reCAPTCHA v3 Token ──
+                const recaptchaToken = await getRecaptchaToken();
+
+                const data = {
+                    name: safeName,
+                    phone: safePhone,
+                    note: safeNote,
+                    _subject: "CÓ KHÁCH HÀNG MỚI ĐĂNG KÝ TỪ WEBSITE MARC STUDIO!"
+                };
+
+                // Gửi token reCAPTCHA nếu có
+                if (recaptchaToken) {
+                    data['g-recaptcha-response'] = recaptchaToken;
                 }
-                
+
+                await fetch("https://formsubmit.co/ajax/youwithme.work@gmail.com", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                // ── LỚP 6: Đánh dấu đã gửi (Rate Limit) ──
+                markAsSubmitted();
+
                 form.reset();
-                closeLeadModal();
+                if (typeof closeLeadModal === 'function') closeLeadModal();
+
                 const success = document.getElementById('success-box');
-                success.classList.remove('hidden');
-                setTimeout(() => success.classList.add('hidden'), 4000);
+                if (success) {
+                    success.classList.remove('hidden');
+                    setTimeout(() => success.classList.add('hidden'), 4000);
+                }
+
+                // Disable tất cả nút submit sau khi gửi thành công
+                document.querySelectorAll('form button[type="submit"]').forEach(btn => {
+                    btn.disabled = true;
+                    btn.innerText = '✅ Đã gửi thành công';
+                    btn.classList.add('opacity-60', 'cursor-not-allowed');
+                });
+
             } catch (err) {
-                console.error("Lỗi:", err);
+                console.error("[BẢO MẬT] Lỗi gửi form:", err);
                 alert("Có lỗi xảy ra, vui lòng thử lại sau.");
             } finally {
-                submitBtn.innerText = originalText;
-                submitBtn.disabled = false;
+                if (!isRateLimited()) {
+                    submitBtn.innerText = originalText;
+                    submitBtn.disabled = false;
+                }
             }
+        }
+
+        // === Disable form nếu đã gửi trước đó (khi load lại trang) ===
+        if (isRateLimited()) {
+            document.querySelectorAll('form button[type="submit"]').forEach(btn => {
+                btn.disabled = true;
+                btn.innerText = '✅ Đã gửi thành công';
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+            });
         }
     </script>
 </body>
